@@ -10,18 +10,81 @@
       background: #e7f0f8;
       margin: 0;
       padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     h1 {
-      text-align: center;
       color: #2b2b2b;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    #search-container {
+      margin-bottom: 20px;
+      max-width: 600px;
+      width: 100%;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    #search-input {
+      flex-grow: 1;
+      padding: 10px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: 1px solid #aaa;
+      transition: border-color 0.3s;
+    }
+    #search-input:focus {
+      border-color: #005fcc;
+      outline: none;
+    }
+    button#reset-btn {
+      background: #005fcc;
+      border: none;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+    button#reset-btn:hover {
+      background: #0041a8;
+    }
+    #sort-container {
+      max-width: 600px;
+      width: 100%;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    #sort-container select {
+      padding: 8px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: 1px solid #aaa;
+      cursor: pointer;
+    }
+    #patients {
+      max-width: 600px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
     }
     .card {
       background: white;
       border-radius: 12px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       padding: 15px;
-      margin: 15px auto;
-      max-width: 600px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      cursor: default;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
     }
     .field {
       margin-bottom: 8px;
@@ -30,44 +93,209 @@
       font-weight: bold;
       color: #333;
     }
+    #pagination {
+      margin-top: 25px;
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    #pagination button {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      background: white;
+      cursor: pointer;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    #pagination button.active, #pagination button:hover {
+      background: #005fcc;
+      color: white;
+      border-color: #005fcc;
+    }
+    #pagination button:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
   </style>
 </head>
 <body>
   <h1>Fiches Patients</h1>
+
+  <div id="search-container">
+    <input id="search-input" type="text" placeholder="Recherche (nom, prénom, allergies, actes...)" />
+    <button id="reset-btn" title="Réinitialiser la recherche">Reset</button>
+  </div>
+
+  <div id="sort-container">
+    <label for="sort-select">Trier par : </label>
+    <select id="sort-select">
+      <option value="date-desc">Date (plus récentes)</option>
+      <option value="date-asc">Date (plus anciennes)</option>
+      <option value="nom-asc">Nom (A → Z)</option>
+      <option value="nom-desc">Nom (Z → A)</option>
+      <option value="age-asc">Âge (croissant)</option>
+      <option value="age-desc">Âge (décroissant)</option>
+    </select>
+  </div>
+
   <div id="patients"></div>
+
+  <div id="pagination"></div>
 
   <script>
     const apiUrl = "https://script.google.com/macros/s/AKfycbzfAytQv7UQau2wrjyQVAqsAeN4IdLOUu9z3g8Y8vuepPzNKmm6g4RYW3uX_EDkLun4/exec";
+    const patientsContainer = document.getElementById("patients");
+    const searchInput = document.getElementById("search-input");
+    const resetBtn = document.getElementById("reset-btn");
+    const sortSelect = document.getElementById("sort-select");
+    const paginationContainer = document.getElementById("pagination");
 
+    let patientsData = [];
+    let filteredPatients = [];
+    let currentPage = 1;
+    const itemsPerPage = 6;
+
+    // Fonction pour formater la date
+    function formatDate(dateString) {
+      const d = new Date(dateString);
+      if (isNaN(d)) return "Date inconnue";
+      return d.toLocaleDateString("fr-FR", { year: "numeric", month: "long", day: "numeric" });
+    }
+
+    // Fonction pour afficher les patients (avec pagination)
+    function displayPatients(page = 1) {
+      patientsContainer.innerHTML = "";
+      currentPage = page;
+
+      const start = (page - 1) * itemsPerPage;
+      const end = start + itemsPerPage;
+      const pagePatients = filteredPatients.slice(start, end);
+
+      if (pagePatients.length === 0) {
+        patientsContainer.innerHTML = "<p>Aucun patient trouvé.</p>";
+        paginationContainer.innerHTML = "";
+        return;
+      }
+
+      pagePatients.forEach(p => {
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `
+          <div class="field"><span>Nom :</span> ${p.Nom}</div>
+          <div class="field"><span>Prénom :</span> ${p.Prénom}</div>
+          <div class="field"><span>Âge :</span> ${p["Âge"]}</div>
+          <div class="field"><span>Allergies :</span> ${p.Allergies}</div>
+          <div class="field"><span>Actes chirurgicaux :</span> ${p["Actes chirurgicaux"]}</div>
+          <div class="field"><span>Dernière visite :</span> ${formatDate(p["Date"])}</div>
+        `;
+        patientsContainer.appendChild(div);
+      });
+
+      renderPagination();
+    }
+
+    // Fonction de filtre sur recherche texte
+    function filterPatients(query) {
+      query = query.trim().toLowerCase();
+      if (!query) {
+        filteredPatients = [...patientsData];
+      } else {
+        filteredPatients = patientsData.filter(p => {
+          return (
+            (p.Nom && p.Nom.toLowerCase().includes(query)) ||
+            (p.Prénom && p.Prénom.toLowerCase().includes(query)) ||
+            (p.Allergies && p.Allergies.toLowerCase().includes(query)) ||
+            (p["Actes chirurgicaux"] && p["Actes chirurgicaux"].toLowerCase().includes(query))
+          );
+        });
+      }
+      currentPage = 1;
+      sortPatients();
+      displayPatients(currentPage);
+    }
+
+    // Fonction de tri
+    function sortPatients() {
+      const val = sortSelect.value;
+      filteredPatients.sort((a, b) => {
+        switch (val) {
+          case "date-asc":
+            return new Date(a["Date"]) - new Date(b["Date"]);
+          case "date-desc":
+            return new Date(b["Date"]) - new Date(a["Date"]);
+          case "nom-asc":
+            return (a.Nom || "").localeCompare(b.Nom || "");
+          case "nom-desc":
+            return (b.Nom || "").localeCompare(a.Nom || "");
+          case "age-asc":
+            return (a["Âge"] || 0) - (b["Âge"] || 0);
+          case "age-desc":
+            return (b["Âge"] || 0) - (a["Âge"] || 0);
+          default:
+            return 0;
+        }
+      });
+    }
+
+    // Affichage de la pagination
+    function renderPagination() {
+      paginationContainer.innerHTML = "";
+      const pageCount = Math.ceil(filteredPatients.length / itemsPerPage);
+
+      if (pageCount <= 1) return;
+
+      const createPageBtn = (text, page, disabled = false, active = false) => {
+        const btn = document.createElement("button");
+        btn.textContent = text;
+        btn.disabled = disabled;
+        if (active) btn.classList.add("active");
+        btn.addEventListener("click", () => {
+          displayPatients(page);
+        });
+        return btn;
+      };
+
+      // Bouton précédent
+      paginationContainer.appendChild(createPageBtn("«", currentPage - 1, currentPage === 1));
+
+      // Boutons pages
+      for (let i = 1; i <= pageCount; i++) {
+        paginationContainer.appendChild(createPageBtn(i, i, false, i === currentPage));
+      }
+
+      // Bouton suivant
+      paginationContainer.appendChild(createPageBtn("»", currentPage + 1, currentPage === pageCount));
+    }
+
+    // Initialisation et récupération des données
     fetch(apiUrl)
       .then(res => res.json())
-      .then(patients => {
-        const container = document.getElementById("patients");
-        console.log("Clés reçues dans le premier patient :", Object.keys(patients[0]));
-        patients.reverse().forEach(p => {
-          const dateVisite = new Date(p["Date"]);
-          const dateFormatee = isNaN(dateVisite) ? "Date inconnue" : dateVisite.toLocaleDateString("fr-FR", {
-            year: "numeric",
-            month: "long",
-            day: "numeric"
-          });
-          const div = document.createElement("div");
-          div.className = "card";
-          div.innerHTML = `
-            <div class="field"><span>Nom :</span> ${p.Nom}</div>
-            <div class="field"><span>Prénom :</span> ${p.Prénom}</div>
-            <div class="field"><span>Âge :</span> ${p["Âge"]}</div>
-            <div class="field"><span>Allergies :</span> ${p.Allergies}</div>
-            <div class="field"><span>Actes chirurgicaux :</span> ${p["Actes chirurgicaux"]}</div>
-            <div class="field"><span>Dernière visite :</span> ${dateFormatee}</div>
-          `;
-          container.appendChild(div);
-        });
+      .then(data => {
+        patientsData = data.reverse();
+        filteredPatients = [...patientsData];
+        sortPatients();
+        displayPatients(1);
       })
       .catch(error => {
-        document.getElementById("patients").innerHTML = "<p>Erreur de chargement des données.</p>";
+        patientsContainer.innerHTML = "<p>Erreur de chargement des données.</p>";
         console.error(error);
       });
+
+    // Événements
+    searchInput.addEventListener("input", () => {
+      filterPatients(searchInput.value);
+    });
+
+    resetBtn.addEventListener("click", () => {
+      searchInput.value = "";
+      filterPatients("");
+    });
+
+    sortSelect.addEventListener("change", () => {
+      sortPatients();
+      displayPatients(1);
+    });
   </script>
 </body>
 </html>
