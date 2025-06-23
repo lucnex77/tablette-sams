@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Tablette Médicale</title>
+  <style>
+    body { font-family: sans-serif; background: #f0f0f0; padding: 20px; }
+    .patient {
+      background: white;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+  <h1>Tablette Médicale</h1>
+  <div id="patients">Chargement...</div>
+
+  <script>
+    fetch('https://script.google.com/macros/s/TON_LIEN/exec') // ← Remplace TON_LIEN
+      .then(response => response.json())
+      .then(data => {
+        const container = document.getElementById('patients');
+        container.innerHTML = '';
+
+        data.forEach(patient => {
+          const div = document.createElement('div');
+          div.className = 'patient';
+          div.innerHTML = `
+            <strong>${patient.Prénom} ${patient.Nom}</strong><br>
+            Âge : ${patient. Âge}<br>
+            Allergies : ${patient.Allergies}<br>
+            Actes chirurgicaux : ${patient['Actes chirurgicaux']}<br>
+            Date de saisie : ${new Date(patient.Date).toLocaleDateString('fr-FR')}
+          `;
+          container.appendChild(div);
+        });
+      });
+  </script>
+</body>
+</html>
