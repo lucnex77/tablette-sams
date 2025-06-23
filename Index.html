@@ -1,42 +1,60 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Tablette Médicale</title>
-  <style>
-    body { font-family: sans-serif; background: #f0f0f0; padding: 20px; }
-    .patient {
-      background: white;
-      padding: 15px;
-      margin-bottom: 10px;
-      border-radius: 10px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.2);
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tablette Médicale</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f0f0f5; padding: 20px; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #ddd; padding: 8px; }
+  th { background: #4CAF50; color: white; }
+</style>
 </head>
 <body>
-  <h1>Tablette Médicale</h1>
-  <div id="patients">Chargement...</div>
+  <h1>Liste des patients</h1>
+  <table id="patientsTable">
+    <thead></thead>
+    <tbody></tbody>
+  </table>
 
   <script>
-    fetch('https://script.google.com/macros/s/AKfycbxNfU2MG2uC78ppflrdxmqERm0VBSUrcBsw4bhCTnC190YZL4Pn_z4BivGdNLOo1u9J/exec') // ← Remplace TON_LIEN
-      .then(response => response.json())
-      .then(data => {
-        const container = document.getElementById('patients');
-        container.innerHTML = '';
+    const apiUrl = "https://script.google.com/macros/s/AKfycbxNfU2MG2uC78ppflrdxmqERm0VBSUrcBsw4bhCTnC190YZL4Pn_z4BivGdNLOo1u9J/exec"; // remplace par ton URL Google Apps Script
 
-        data.forEach(patient => {
-          const div = document.createElement('div');
-          div.className = 'patient';
-          div.innerHTML = `
-            <strong>${patient.Prénom} ${patient.Nom}</strong><br>
-            Âge : ${patient. Âge}<br>
-            Allergies : ${patient.Allergies}<br>
-            Actes chirurgicaux : ${patient['Actes chirurgicaux']}<br>
-            Date de saisie : ${new Date(patient.Date).toLocaleDateString('fr-FR')}
-          `;
-          container.appendChild(div);
+    fetch(apiUrl)
+      .then(res => res.json())
+      .then(data => {
+        if(data.length === 0) {
+          document.getElementById('patientsTable').innerHTML = "<tr><td>Aucune donnée</td></tr>";
+          return;
+        }
+
+        // Crée en-tête
+        const headers = Object.keys(data[0]);
+        const thead = document.querySelector("#patientsTable thead");
+        const trHead = document.createElement("tr");
+        headers.forEach(h => {
+          const th = document.createElement("th");
+          th.textContent = h;
+          trHead.appendChild(th);
         });
+        thead.appendChild(trHead);
+
+        // Crée lignes
+        const tbody = document.querySelector("#patientsTable tbody");
+        data.forEach(patient => {
+          const tr = document.createElement("tr");
+          headers.forEach(h => {
+            const td = document.createElement("td");
+            td.textContent = patient[h];
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+      })
+      .catch(err => {
+        document.body.innerHTML = "<p>Erreur lors du chargement des données.</p>";
+        console.error(err);
       });
   </script>
 </body>
