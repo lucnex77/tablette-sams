@@ -402,15 +402,13 @@
         const ageBadge = getAgeBadge(p["Âge"]);
 
         // Détails extensibles
-        card.innerHTML = `
-          <div class="field"><span>Nom / Prénom : </span>${nomPrenom} ${ageBadge}</div>
-          <div class="field"><span>Date de naissance : </span>${formatDate(p["Date de naissance"])}</div>
-          <div class="field"><span>Sexe : </span>${p.Sexe}</div>
-          <div class="field"><span>Date visite : </span>${formatDate(p.Date)}</div>
-          <div class="field"><span>Allergies : </span>${highlight(p.Allergies || "Aucune", searchVal)}</div>
-          <div class="field"><span>Antécédents médicaux : </span>${highlight(p["Antécédents médicaux"] || "Aucun", searchVal)}</div>
-          <div class="field"><span>Actes chirurgicaux : </span>${highlight(p["Actes chirurgicaux"] || "Aucun", searchVal)}</div>
-          <div class="field"><span>Observations : </span>${highlight(p.Observations || "Aucune", searchVal)}</div>
+        div.innerHTML = `
+          <div class="field"><span>Nom :</span> ${p.Nom}</div>
+          <div class="field"><span>Prénom :</span> ${p.Prénom}</div>
+          <div class="field"><span>Âge :</span> ${p["Âge"]}</div>
+          <div class="field"><span>Allergies :</span> ${p.Allergies}</div>
+          <div class="field"><span>Actes chirurgicaux :</span> ${p["Actes chirurgicaux"]}</div>
+          <div class="field"><span>Dernière visite :</span> ${formatDate(p["Date"])}</div>
         `;
         patientsContainer.appendChild(card);
       });
