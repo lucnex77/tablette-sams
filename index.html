@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Tablette Médicale - Patients</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #e7f0f8;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #2b2b2b;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 15px;
+      margin: 15px auto;
+      max-width: 600px;
+    }
+    .field {
+      margin-bottom: 8px;
+    }
+    .field span {
+      font-weight: bold;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Fiches Patients</h1>
+  <div id="patients"></div>
+
+  <script>
+    const apiUrl = "https://script.google.com/macros/s/AKfycbxNfU2MG2uC78ppflrdxmqERm0VBSUrcBsw4bhCTnC190YZL4Pn_z4BivGdNLOo1u9J/exec";
+
+    fetch(apiUrl)
+      .then(res => res.json())
+      .then(patients => {
+        const container = document.getElementById("patients");
+        patients.reverse().forEach(p => {
+          const div = document.createElement("div");
+          div.className = "card";
+          div.innerHTML = `
+            <div class="field"><span>Nom :</span> ${p.Nom}</div>
+            <div class="field"><span>Prénom :</span> ${p.Prénom}</div>
+            <div class="field"><span>Âge :</span> ${p["âge"]}</div>
+            <div class="field"><span>Allergies :</span> ${p.Allergies}</div>
+            <div class="field"><span>Actes chirurgicaux :</span> ${p["Actes chirurgicaux effectué"]}</div>
+            <div class="field"><span>Dernière visite :</span> ${new Date(p["Dernière visite"]).toLocaleString("fr-FR")}</div>
+          `;
+          container.appendChild(div);
+        });
+      })
+      .catch(error => {
+        document.getElementById("patients").innerHTML = "<p>Erreur de chargement des données.</p>";
+        console.error(error);
+      });
+  </script>
+</body>
+</html>
