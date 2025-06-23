@@ -43,6 +43,7 @@
       .then(res => res.json())
       .then(patients => {
         const container = document.getElementById("patients");
+        console.log("Clés reçues dans le premier patient :", Object.keys(patients[0]));
         patients.reverse().forEach(p => {
           const dateVisite = new Date(p["Date"]);
           const dateFormatee = isNaN(dateVisite) ? "Date inconnue" : dateVisite.toLocaleDateString("fr-FR", {
