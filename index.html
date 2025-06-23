@@ -5,297 +5,543 @@
   <title>Tablette Médicale - Patients</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
+    /* Reset et base */
+    * {
+      box-sizing: border-box;
+    }
     body {
-      font-family: "Segoe UI", sans-serif;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       background: #e7f0f8;
       margin: 0;
       padding: 20px;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      color: #222;
+      transition: background-color 0.3s, color 0.3s;
     }
+    body.dark {
+      background: #121212;
+      color: #ddd;
+    }
+
     h1 {
-      color: #2b2b2b;
-      margin-bottom: 10px;
       text-align: center;
+      margin-bottom: 10px;
+      font-weight: 700;
+      color: #2b2b2b;
     }
-    #search-container {
-      margin-bottom: 20px;
-      max-width: 600px;
-      width: 100%;
+    body.dark h1 {
+      color: #eee;
+    }
+
+    /* Conteneur principal */
+    #app {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* Barre d'outils / filtres */
+    .toolbar {
       display: flex;
-      gap: 10px;
       flex-wrap: wrap;
+      gap: 12px;
       justify-content: center;
+      margin-bottom: 20px;
     }
-    #search-input {
-      flex-grow: 1;
-      padding: 10px;
+    .toolbar > * {
+      flex: 1 1 180px;
+      min-width: 140px;
+    }
+
+    input[type="search"], select, input[type="date"], button {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1.8px solid #999;
       font-size: 1rem;
-      border-radius: 8px;
-      border: 1px solid #aaa;
-      transition: border-color 0.3s;
+      transition: border-color 0.2s;
+      background: white;
+      color: #222;
     }
-    #search-input:focus {
-      border-color: #005fcc;
+    body.dark input[type="search"], 
+    body.dark select, 
+    body.dark input[type="date"] {
+      background: #222;
+      border-color: #555;
+      color: #eee;
+    }
+    input[type="search"]:focus,
+    select:focus,
+    input[type="date"]:focus {
       outline: none;
+      border-color: #0055cc;
+      box-shadow: 0 0 6px #0055ccaa;
     }
-    button#reset-btn {
-      background: #005fcc;
+    button {
+      cursor: pointer;
+      background: #0055cc;
       border: none;
       color: white;
-      padding: 10px 18px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background 0.3s;
+      font-weight: 600;
+      transition: background-color 0.2s;
     }
-    button#reset-btn:hover {
-      background: #0041a8;
+    button:hover {
+      background: #003d99;
     }
-    #sort-container {
-      max-width: 600px;
-      width: 100%;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    #sort-container select {
-      padding: 8px;
-      font-size: 1rem;
-      border-radius: 8px;
-      border: 1px solid #aaa;
-      cursor: pointer;
-    }
-    #patients {
-      max-width: 600px;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
+
+    /* Carte patient */
     .card {
       background: white;
       border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      padding: 15px;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      cursor: default;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+      padding: 20px;
+      margin: 10px auto;
+      max-width: 600px;
+      transition: background-color 0.3s, color 0.3s;
     }
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    body.dark .card {
+      background: #1e1e1e;
+      color: #ddd;
+      box-shadow: 0 3px 15px rgba(0,0,0,0.7);
     }
+
     .field {
-      margin-bottom: 8px;
+      margin-bottom: 10px;
+      font-size: 1rem;
     }
     .field span {
-      font-weight: bold;
-      color: #333;
+      font-weight: 700;
+      color: #444;
     }
-    #pagination {
-      margin-top: 25px;
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-      flex-wrap: wrap;
+    body.dark .field span {
+      color: #bbb;
     }
-    #pagination button {
-      padding: 8px 12px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      background: white;
-      cursor: pointer;
-      transition: background 0.3s, border-color 0.3s;
-    }
-    #pagination button.active, #pagination button:hover {
-      background: #005fcc;
+
+    /* Badge âge */
+    .age-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.9rem;
       color: white;
-      border-color: #005fcc;
     }
-    #pagination button:disabled {
-      cursor: not-allowed;
+    .age-badge.child {
+      background: #4caf50; /* vert */
+    }
+    .age-badge.teen {
+      background: #ff9800; /* orange */
+    }
+    .age-badge.adult {
+      background: #2196f3; /* bleu */
+    }
+    .age-badge.senior {
+      background: #9c27b0; /* violet */
+    }
+    /* Icônes âge */
+    .age-badge svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    /* Pagination */
+    .pagination {
+      text-align: center;
+      margin-top: 30px;
+      user-select: none;
+    }
+    .pagination button {
+      margin: 0 4px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1.5px solid #999;
+      background: white;
+      color: #222;
+      font-weight: 600;
+      transition: background-color 0.2s, border-color 0.2s;
+      cursor: pointer;
+    }
+    body.dark .pagination button {
+      background: #222;
+      border-color: #555;
+      color: #eee;
+    }
+    .pagination button.active {
+      background: #0055cc;
+      border-color: #003d99;
+      color: white;
+      cursor: default;
+    }
+    .pagination button:disabled {
       opacity: 0.5;
+      cursor: not-allowed;
+    }
+    /* Points de suspension */
+    .pagination span {
+      margin: 0 6px;
+      font-weight: 600;
+      color: #666;
+    }
+    body.dark .pagination span {
+      color: #888;
+    }
+
+    /* Résultats vide */
+    .no-results {
+      text-align: center;
+      font-style: italic;
+      font-weight: 600;
+      margin-top: 30px;
+      color: #777;
+    }
+    body.dark .no-results {
+      color: #aaa;
+    }
+
+    /* Surlignage recherche */
+    mark {
+      background: #ffeb3b;
+      color: #000;
+      padding: 0 2px;
+      border-radius: 3px;
+    }
+    body.dark mark {
+      background: #f9a825;
+      color: #111;
+    }
+
+    /* Bouton mode sombre */
+    #dark-mode-toggle {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: #0055cc;
+      border: none;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      box-shadow: 0 3px 8px rgba(0,85,204,0.6);
+      transition: background-color 0.3s;
+      z-index: 100;
+    }
+    #dark-mode-toggle:hover {
+      background: #003d99;
     }
   </style>
 </head>
 <body>
-  <h1>Fiches Patients</h1>
-
-  <div id="search-container">
-    <input id="search-input" type="text" placeholder="Recherche (nom, prénom, allergies, actes...)" />
-    <button id="reset-btn" title="Réinitialiser la recherche">Reset</button>
+  <button id="dark-mode-toggle" title="Basculer mode sombre">🌙</button>
+  <div id="app">
+    <h1>Fiches Patients</h1>
+    <div class="toolbar">
+      <input type="search" id="search-input" placeholder="Recherche par nom, prénom, allergies..." aria-label="Recherche" />
+      <select id="age-filter" aria-label="Filtrer par tranche d'âge">
+        <option value="">Tous âges</option>
+        <option value="child">0-12 ans</option>
+        <option value="teen">13-17 ans</option>
+        <option value="adult">18-59 ans</option>
+        <option value="senior">60 ans et +</option>
+      </select>
+      <input type="date" id="date-from" aria-label="Date visite à partir de" />
+      <input type="date" id="date-to" aria-label="Date visite jusqu'à" />
+      <select id="sort-select" aria-label="Trier les patients">
+        <option value="date-desc">Dernière visite ↓</option>
+        <option value="date-asc">Dernière visite ↑</option>
+        <option value="age-desc">Âge ↓</option>
+        <option value="age-asc">Âge ↑</option>
+        <option value="nom-asc">Nom A → Z</option>
+        <option value="nom-desc">Nom Z → A</option>
+      </select>
+      <select id="items-per-page" aria-label="Nombre d'éléments par page">
+        <option value="3">3 / page</option>
+        <option value="6" selected>6 / page</option>
+        <option value="10">10 / page</option>
+        <option value="20">20 / page</option>
+      </select>
+      <button id="reset-btn" title="Réinitialiser filtres">Réinitialiser</button>
+    </div>
+    <div id="patients"></div>
+    <div class="pagination" id="pagination"></div>
   </div>
-
-  <div id="sort-container">
-    <label for="sort-select">Trier par : </label>
-    <select id="sort-select">
-      <option value="date-desc">Date (plus récentes)</option>
-      <option value="date-asc">Date (plus anciennes)</option>
-      <option value="nom-asc">Nom (A → Z)</option>
-      <option value="nom-desc">Nom (Z → A)</option>
-      <option value="age-asc">Âge (croissant)</option>
-      <option value="age-desc">Âge (décroissant)</option>
-    </select>
-  </div>
-
-  <div id="patients"></div>
-
-  <div id="pagination"></div>
 
   <script>
+  (function(){
     const apiUrl = "https://script.google.com/macros/s/AKfycbzfAytQv7UQau2wrjyQVAqsAeN4IdLOUu9z3g8Y8vuepPzNKmm6g4RYW3uX_EDkLun4/exec";
+
+    // Éléments DOM
     const patientsContainer = document.getElementById("patients");
     const searchInput = document.getElementById("search-input");
-    const resetBtn = document.getElementById("reset-btn");
+    const ageFilter = document.getElementById("age-filter");
+    const dateFrom = document.getElementById("date-from");
+    const dateTo = document.getElementById("date-to");
     const sortSelect = document.getElementById("sort-select");
+    const itemsPerPageSelect = document.getElementById("items-per-page");
+    const resetBtn = document.getElementById("reset-btn");
     const paginationContainer = document.getElementById("pagination");
+    const darkModeToggle = document.getElementById("dark-mode-toggle");
 
+    // Variables état
     let patientsData = [];
     let filteredPatients = [];
     let currentPage = 1;
-    const itemsPerPage = 6;
+    let itemsPerPage = parseInt(itemsPerPageSelect.value);
 
-    // Fonction pour formater la date
-    function formatDate(dateString) {
-      const d = new Date(dateString);
+    // Icônes âge SVG
+    const icons = {
+      child: `<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4S14.21 4 12 4 8 5.79 8 8s1.79 4 4 4zM6 18c0-2.21 3.58-4 6-4s6 1.79 6 4v2H6v-2z"/></svg>`,
+      teen: `<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 3.87 4 7 7 7s7-3.13 7-7c0-3.87-3.13-7-7-7z"/></svg>`,
+      adult: `<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4S14.21 4 12 4 8 5.79 8 8s1.79 4 4 4zM6 18v-1c0-1.66 3.34-3 6-3s6 1.34 6 3v1H6z"/></svg>`,
+      senior: `<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M9 5c-1.66 0-3 1.34-3 3v7h12v-7c0-1.66-1.34-3-3-3H9z"/></svg>`
+    };
+
+    // Utilitaires
+    function highlight(text, search) {
+      if (!search) return text;
+      const regex = new RegExp(`(${search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, "gi");
+      return text.replace(regex, '<mark>$1</mark>');
+    }
+    function getAgeBadge(age) {
+      if (age === "" || isNaN(age)) return '';
+      age = Number(age);
+      if (age <= 12) return `<span class="age-badge child" title="Enfant">${icons.child} ${age} ans</span>`;
+      if (age <= 17) return `<span class="age-badge teen" title="Adolescent">${icons.teen} ${age} ans</span>`;
+      if (age <= 59) return `<span class="age-badge adult" title="Adulte">${icons.adult} ${age} ans</span>`;
+      return `<span class="age-badge senior" title="Senior">${icons.senior} ${age} ans</span>`;
+    }
+    function formatDate(dateStr) {
+      const d = new Date(dateStr);
       if (isNaN(d)) return "Date inconnue";
       return d.toLocaleDateString("fr-FR", { year: "numeric", month: "long", day: "numeric" });
     }
 
-    // Fonction pour afficher les patients (avec pagination)
-    function displayPatients(page = 1) {
-      patientsContainer.innerHTML = "";
-      currentPage = page;
+    // Filtrage
+    function filterPatients() {
+      const searchVal = searchInput.value.trim().toLowerCase();
+      const ageVal = ageFilter.value;
+      const fromDate = dateFrom.value ? new Date(dateFrom.value) : null;
+      const toDate = dateTo.value ? new Date(dateTo.value) : null;
 
-      const start = (page - 1) * itemsPerPage;
-      const end = start + itemsPerPage;
-      const pagePatients = filteredPatients.slice(start, end);
+      filteredPatients = patientsData.filter(p => {
+        // Recherche texte nom, prénom, allergies, actes chirurgicaux
+        const searchText = `${p.Nom} ${p.Prénom} ${p.Allergies} ${p["Actes chirurgicaux"]}`.toLowerCase();
 
-      if (pagePatients.length === 0) {
-        patientsContainer.innerHTML = "<p>Aucun patient trouvé.</p>";
-        paginationContainer.innerHTML = "";
-        return;
-      }
+        if (searchVal && !searchText.includes(searchVal)) return false;
 
-      pagePatients.forEach(p => {
-        const div = document.createElement("div");
-        div.className = "card";
-        div.innerHTML = `
-          <div class="field"><span>Nom :</span> ${p.Nom}</div>
-          <div class="field"><span>Prénom :</span> ${p.Prénom}</div>
-          <div class="field"><span>Âge :</span> ${p["Âge"]}</div>
-          <div class="field"><span>Allergies :</span> ${p.Allergies}</div>
-          <div class="field"><span>Actes chirurgicaux :</span> ${p["Actes chirurgicaux"]}</div>
-          <div class="field"><span>Dernière visite :</span> ${formatDate(p["Date"])}</div>
-        `;
-        patientsContainer.appendChild(div);
+        // Filtre âge
+        const age = Number(p["Âge"]);
+        if (ageVal) {
+          if (ageVal === "child" && (age > 12 || isNaN(age))) return false;
+          if (ageVal === "teen" && (age < 13 || age > 17)) return false;
+          if (ageVal === "adult" && (age < 18 || age > 59)) return false;
+          if (ageVal === "senior" && (age < 60)) return false;
+        }
+
+        // Filtre date visite
+        const visitDate = new Date(p.Date);
+        if (fromDate && visitDate < fromDate) return false;
+        if (toDate && visitDate > toDate) return false;
+
+        return true;
       });
-
-      renderPagination();
-    }
-
-    // Fonction de filtre sur recherche texte
-    function filterPatients(query) {
-      query = query.trim().toLowerCase();
-      if (!query) {
-        filteredPatients = [...patientsData];
-      } else {
-        filteredPatients = patientsData.filter(p => {
-          return (
-            (p.Nom && p.Nom.toLowerCase().includes(query)) ||
-            (p.Prénom && p.Prénom.toLowerCase().includes(query)) ||
-            (p.Allergies && p.Allergies.toLowerCase().includes(query)) ||
-            (p["Actes chirurgicaux"] && p["Actes chirurgicaux"].toLowerCase().includes(query))
-          );
-        });
-      }
-      currentPage = 1;
       sortPatients();
+      currentPage = 1;
       displayPatients(currentPage);
+      updatePagination();
     }
 
-    // Fonction de tri
+    // Tri
     function sortPatients() {
-      const val = sortSelect.value;
-      filteredPatients.sort((a, b) => {
-        switch (val) {
+      const sortVal = sortSelect.value;
+      filteredPatients.sort((a,b) => {
+        switch(sortVal) {
           case "date-asc":
-            return new Date(a["Date"]) - new Date(b["Date"]);
+            return new Date(a.Date) - new Date(b.Date);
           case "date-desc":
-            return new Date(b["Date"]) - new Date(a["Date"]);
-          case "nom-asc":
-            return (a.Nom || "").localeCompare(b.Nom || "");
-          case "nom-desc":
-            return (b.Nom || "").localeCompare(a.Nom || "");
+            return new Date(b.Date) - new Date(a.Date);
           case "age-asc":
-            return (a["Âge"] || 0) - (b["Âge"] || 0);
+            return Number(a["Âge"]) - Number(b["Âge"]);
           case "age-desc":
-            return (b["Âge"] || 0) - (a["Âge"] || 0);
+            return Number(b["Âge"]) - Number(a["Âge"]);
+          case "nom-asc":
+            return a.Nom.localeCompare(b.Nom);
+          case "nom-desc":
+            return b.Nom.localeCompare(a.Nom);
           default:
             return 0;
         }
       });
     }
 
-    // Affichage de la pagination
-    function renderPagination() {
-      paginationContainer.innerHTML = "";
-      const pageCount = Math.ceil(filteredPatients.length / itemsPerPage);
-
-      if (pageCount <= 1) return;
-
-      const createPageBtn = (text, page, disabled = false, active = false) => {
-        const btn = document.createElement("button");
-        btn.textContent = text;
-        btn.disabled = disabled;
-        if (active) btn.classList.add("active");
-        btn.addEventListener("click", () => {
-          displayPatients(page);
-        });
-        return btn;
-      };
-
-      // Bouton précédent
-      paginationContainer.appendChild(createPageBtn("«", currentPage - 1, currentPage === 1));
-
-      // Boutons pages
-      for (let i = 1; i <= pageCount; i++) {
-        paginationContainer.appendChild(createPageBtn(i, i, false, i === currentPage));
+    // Affichage
+    function displayPatients(page) {
+      patientsContainer.innerHTML = "";
+      if(filteredPatients.length === 0) {
+        patientsContainer.innerHTML = `<p class="no-results">Aucun patient trouvé.</p>`;
+        paginationContainer.innerHTML = "";
+        return;
       }
+      itemsPerPage = parseInt(itemsPerPageSelect.value);
+      const start = (page - 1) * itemsPerPage;
+      const end = start + itemsPerPage;
+      const slice = filteredPatients.slice(start, end);
 
-      // Bouton suivant
-      paginationContainer.appendChild(createPageBtn("»", currentPage + 1, currentPage === pageCount));
+      const searchVal = searchInput.value.trim();
+
+      slice.forEach(p => {
+        // Création carte
+        const card = document.createElement("div");
+        card.className = "card";
+
+        // Champ nom/prénom avec surlignage
+        const nomPrenom = highlight(`${p.Nom} ${p.Prénom}`, searchVal);
+
+        // Age badge
+        const ageBadge = getAgeBadge(p["Âge"]);
+
+        // Détails extensibles
+        card.innerHTML = `
+          <div class="field"><span>Nom / Prénom : </span>${nomPrenom} ${ageBadge}</div>
+          <div class="field"><span>Date de naissance : </span>${formatDate(p["Date de naissance"])}</div>
+          <div class="field"><span>Sexe : </span>${p.Sexe}</div>
+          <div class="field"><span>Date visite : </span>${formatDate(p.Date)}</div>
+          <div class="field"><span>Allergies : </span>${highlight(p.Allergies || "Aucune", searchVal)}</div>
+          <div class="field"><span>Antécédents médicaux : </span>${highlight(p["Antécédents médicaux"] || "Aucun", searchVal)}</div>
+          <div class="field"><span>Actes chirurgicaux : </span>${highlight(p["Actes chirurgicaux"] || "Aucun", searchVal)}</div>
+          <div class="field"><span>Observations : </span>${highlight(p.Observations || "Aucune", searchVal)}</div>
+        `;
+        patientsContainer.appendChild(card);
+      });
     }
 
-    // Initialisation et récupération des données
-    fetch(apiUrl)
-      .then(res => res.json())
-      .then(data => {
-        patientsData = data.reverse();
-        filteredPatients = [...patientsData];
-        sortPatients();
-        displayPatients(1);
-      })
-      .catch(error => {
-        patientsContainer.innerHTML = "<p>Erreur de chargement des données.</p>";
-        console.error(error);
-      });
+    // Pagination dynamique
+    function updatePagination() {
+      const totalPages = Math.ceil(filteredPatients.length / itemsPerPage);
+      paginationContainer.innerHTML = "";
 
-    // Événements
-    searchInput.addEventListener("input", () => {
-      filterPatients(searchInput.value);
-    });
+      if (totalPages <= 1) return;
 
-    resetBtn.addEventListener("click", () => {
+      function createBtn(page, label = null) {
+        const btn = document.createElement("button");
+        btn.textContent = label || page;
+        btn.disabled = page === currentPage;
+        if (page === currentPage) btn.classList.add("active");
+        btn.addEventListener("click", () => {
+          currentPage = page;
+          displayPatients(currentPage);
+          updatePagination();
+          window.scrollTo({top: 0, behavior: "smooth"});
+        });
+        return btn;
+      }
+
+      // Affichage pagination : boutons 1, ..., current-1, current, current+1, ..., last
+      if(currentPage > 1) {
+        const prev = createBtn(currentPage - 1, "← Précédent");
+        paginationContainer.appendChild(prev);
+      }
+
+      // Premier
+      paginationContainer.appendChild(createBtn(1));
+
+      // Points si nécessaire avant current
+      if(currentPage > 3) {
+        const dots = document.createElement("span");
+        dots.textContent = "...";
+        paginationContainer.appendChild(dots);
+      }
+
+      // Pages autour de current
+      for(let p = Math.max(2, currentPage - 1); p <= Math.min(currentPage + 1, totalPages - 1); p++) {
+        paginationContainer.appendChild(createBtn(p));
+      }
+
+      // Points si nécessaire après current
+      if(currentPage < totalPages - 2) {
+        const dots = document.createElement("span");
+        dots.textContent = "...";
+        paginationContainer.appendChild(dots);
+      }
+
+      // Dernier
+      if(totalPages > 1) {
+        paginationContainer.appendChild(createBtn(totalPages));
+      }
+
+      if(currentPage < totalPages) {
+        const next = createBtn(currentPage + 1, "Suivant →");
+        paginationContainer.appendChild(next);
+      }
+    }
+
+    // Reset filtres
+    function resetFilters() {
       searchInput.value = "";
-      filterPatients("");
+      ageFilter.value = "";
+      dateFrom.value = "";
+      dateTo.value = "";
+      sortSelect.value = "date-desc";
+      itemsPerPageSelect.value = "6";
+      currentPage = 1;
+      filterPatients();
+    }
+
+    // Mode sombre toggle
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark");
+      if(document.body.classList.contains("dark")) {
+        darkModeToggle.textContent = "☀️";
+      } else {
+        darkModeToggle.textContent = "🌙";
+      }
+    }
+
+    darkModeToggle.addEventListener("click", toggleDarkMode);
+
+    // Événements filtres
+    searchInput.addEventListener("input", () => {
+      filterPatients();
+    });
+    ageFilter.addEventListener("change", () => {
+      filterPatients();
+    });
+    dateFrom.addEventListener("change", () => {
+      filterPatients();
+    });
+    dateTo.addEventListener("change", () => {
+      filterPatients();
+    });
+    sortSelect.addEventListener("change", () => {
+      filterPatients();
+    });
+    itemsPerPageSelect.addEventListener("change", () => {
+      currentPage = 1;
+      filterPatients();
+    });
+    resetBtn.addEventListener("click", () => {
+      resetFilters();
     });
 
-    sortSelect.addEventListener("change", () => {
-      sortPatients();
-      displayPatients(1);
-    });
+    // Chargement données
+    async function loadPatients() {
+      try {
+        const resp = await fetch(apiUrl);
+        if (!resp.ok) throw new Error("Erreur de chargement des données");
+        const json = await resp.json();
+        if (!json.data) throw new Error("Format de données invalide");
+        patientsData = json.data;
+        resetFilters();
+      } catch (e) {
+        patientsContainer.innerHTML = `<p class="no-results">Erreur lors du chargement des patients.<br>${e.message}</p>`;
+      }
+    }
+
+    // Initialisation
+    loadPatients();
+
+  })();
   </script>
 </body>
 </html>
